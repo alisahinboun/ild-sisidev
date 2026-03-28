@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alan Değişikliği Simülasyonu 2026 - MEB</title>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f4f7f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --rank1: #fbbf24;
+    --rank2: #94a3b8;
+    --rank3: #b45309;
+    --highlight: #f0fdf4; /* Subtle green for own row */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 40px 24px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header h1 { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  
+  header p { 
+    font-size: 0.9rem; 
+    color: var(--muted); 
+    margin-top: 6px; 
+  }
+
+  .badge-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;
+  }
+  
+  .badge {
+    background: #e2e8f0;
+    color: #334155;
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+  .grid > * { min-width: 0; } /* Prevents grid children stretching the page */
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid rgba(226,232,240,0.6);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 0 0 16px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .card-header h2 { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em; }
+  .card-body { padding: 0; }
+
+  .form-group { margin-bottom: 12px; }
+  label { display: block; font-size: 0.75rem; font-weight: 500; color: #475569; margin-bottom: 4px; }
+  label span.required { color: var(--danger); margin-left: 2px; }
+
+  input, select {
+    width: 100%;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: var(--text);
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+  }
+
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .btn-primary { 
+    background: var(--text); 
+    color: white; 
+    width: 100%; 
+    margin-top: 4px; 
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  }
+  .btn-primary:hover { 
+    background: #000000; 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+  }
+
+  .btn-danger-sm {
+    background: transparent; 
+    color: var(--danger);
+    padding: 6px 12px; font-size: 0.75rem;
+    border: 1px solid var(--danger);
+  }
+  .btn-danger-sm:hover { 
+    background: #fef2f2; 
+  }
+
+  .btn-ghost {
+    background: #f1f5f9; 
+    color: #475569;
+    padding: 8px 16px; 
+    font-size: 0.8rem;
+  }
+  .btn-ghost:hover { background: #e2e8f0; color: var(--text); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    padding: 0 0 20px 0;
+  }
+
+  .filter-bar select, .filter-bar input {
+    width: auto; min-width: 180px; font-size: 0.85rem;
+    background: #ffffff;
+  }
+
+  .filter-bar label { margin: 0; font-size: 0.8rem; white-space: nowrap; }
+
+  .stats-row {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .stat-item { font-size: 0.8rem; color: var(--muted); }
+  .stat-item strong { color: var(--text); font-weight: 600; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin-top: 10px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  thead th {
+    background: transparent;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr.highlight { background: var(--highlight) !important; }
+
+  td { padding: 14px 16px; vertical-align: middle; }
+
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 6px;
+    font-weight: 600; font-size: 0.8rem;
+  }
+
+  .rank-1 { background: #fef3c7; color: #b45309; }
+  .rank-2 { background: #f1f5f9; color: #475569; }
+  .rank-3 { background: #ffedd5; color: #9a3412; }
+  .rank-other { background: #f8fafc; color: #94a3b8; }
+
+  .city-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    margin: 2px;
+  }
+
+  .city-tag-1 { background: #eff6ff; color: #2563eb; }
+  .city-tag-2 { background: #ecfdf5; color: #059669; }
+  .city-tag-3 { background: #fdf2f8; color: #db2777; }
+  .city-tag-special { background: #fef3c7; color: #d97706; }
+
+  .my-rank-banner {
+    display: none;
+    background: var(--card);
+    border: 1px solid var(--primary);
+    box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.15);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .my-rank-banner.show { display: block; }
+  .my-rank-banner h3 { font-size: 1rem; color: var(--primary); font-weight: 600; }
+  .rank-cards { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .rank-card {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .rank-card .city { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+  .rank-card .num { font-size: 1.8rem; font-weight: 700; color: var(--text); }
+  .rank-card .total { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .empty-state {
+    text-align: center; padding: 48px 20px;
+    color: var(--muted); font-size: 0.9rem;
+  }
+
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.5; }
+
+  .divider { 
+    font-size: 0.75rem; 
+    font-weight: 600; 
+    color: var(--muted); 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em; 
+    margin: 24px 0 12px; 
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+
+  .info-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    color: #1e40af;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .alert {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    display: none;
+    font-weight: 500;
+  }
+  .alert.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .alert.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .alert.show { display: block; }
+
+  .puan-input-wrap { position: relative; }
+  .puan-input-wrap input { padding-right: 60px; }
+  .puan-unit {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 0.8rem; color: var(--muted); pointer-events: none;
+  }
+
+  .tercih-section { 
+    background: #f8fafc; 
+    border: 1px solid #f1f5f9;
+    border-radius: 12px; 
+    padding: 12px; 
+    margin-bottom: 0;
+  }
+
+  .special-cities-note {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 12px; padding: 10px 14px;
+    font-size: 0.8rem; color: #92400e; margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab {
+    padding: 12px 16px; font-size: 0.85rem; font-weight: 600;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media print {
+    header, .filter-bar, .card:first-child { display: none; }
+  }
+
+  /* Responsive Mobile Overrides */
+  @media (max-width: 768px) {
+    header h1 { font-size: 1.2rem; }
+    .input-row { grid-template-columns: 1fr; }
+    .filter-bar select, .filter-bar input { width: 100%; min-width: 0; max-width: 100%; }
+    .badge-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    #adminBadge { position: static; display: inline-block; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header style="position: relative;">
+  <h1><i class="fi fi-rr-school"></i> Alan Değişikliği Simülasyonu — 2026</h1>
+  <div id="adminBadge" style="display:none; position:absolute; top:20px; right:20px; background:var(--danger); color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);"><i class="fi fi-rr-shield-check"></i> ADMIN</div>
+  <p>MEB Öğretmen Alan Değişikliğine Bağlı Yer Değişikliği · Duyuru No: 1310260428</p>
+  
+  <div class="badge-row">
+    <span class="badge">Ön Başvuru: 6–10 Nisan 2026</span>
+    <span class="badge">Tercih: 20–24 Nisan 2026</span>
+    <span class="badge">Sonuç: 28 Nisan 2026</span>
+    <button id="btnToggleForm" class="btn" style="display:none; padding:4px 12px; font-size:0.75rem; background:var(--warning); color:white;" onclick="toggleFormStatus()"><i class="fi fi-rr-lock"></i> Kayıtları Durdur</button>
+    <button id="btnManageUsers" class="btn" style="display:none; padding:4px 12px; font-size:0.75rem; background:#475569; color:white;" onclick="openAdminUsers()"><i class="fi fi-rr-users"></i> Kullanıcılar & Kodlar</button>
+    <button id="btnExportCsv" class="btn" style="display:none; padding:4px 12px; font-size:0.75rem; background:var(--primary); color:white;" onclick="exportCsv()"><i class="fi fi-rr-download"></i> CSV İndir</button>
+    <button id="btnLogout" class="btn btn-ghost" style="display:none; padding:4px 12px; font-size:0.75rem; margin-left:auto;" onclick="logoutApp()"><i class="fi fi-rr-sign-out-alt"></i> Çıkış Yap</button>
+  </div>
+</header>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:none; max-width:400px; margin: 40px auto; padding: 24px; background:var(--card); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 1px solid var(--border); text-align:center;">
+  <h2 ondblclick="toggleAdmin()" title="Yönetici girişi için çift tıklayın" style="cursor:pointer;"><i class="fi fi-rr-shield-check" style="color:var(--primary)"></i> Sisteme Giriş</h2>
+  <p style="font-size:0.85rem; color:var(--muted); margin: 8px 0 20px;">Size atanmış olan kişisel Güvenlik Kodu ile giriş yapın.</p>
+  
+  <div id="alertLogin" class="alert"></div>
+
+  <div id="loginSection">
+    <input type="text" id="loginCode" placeholder="H6M2X9 (Güvenlik Kodu)" style="font-size:1.1rem; letter-spacing:2px; padding:12px; margin-bottom:12px; text-transform:uppercase;">
+    <button class="btn btn-primary" onclick="verifyOtp()" id="btnVerifyOtp">Güvenlik Kodunu Gir</button>
+    
+    <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:12px;">Güvenlik kodunuzu bilmiyor musunuz?</p>
+    <button class="btn btn-ghost" style="width:100%" onclick="toggleRequestBox()" id="btnShowRequest"><i class="fi fi-brands-whatsapp" style="color:#25D366"></i> Kodu WhatsApp'tan İste</button>
+    
+    <!-- Expandable Phone Request Area -->
+    <div id="phoneRequestBox" style="display:none; margin-top:16px; padding-top:16px; border-top:1px dashed var(--border);">
+      <p style="font-size:0.85rem; color:var(--text); margin-bottom:12px; font-weight:500;">Sistemde kayıtlı telefon numaranız:</p>
+      <input type="tel" id="loginPhone" placeholder="05xx xxx xx xx" style="font-size:1.1rem; padding:12px; margin-bottom:12px;">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-primary" onclick="openWaLink()" style="background:#128C7E; border:none; box-shadow:0 4px 12px rgba(18,140,126,0.2); font-weight:600;">
+          <i class="fi fi-brands-whatsapp"></i> Bota Yaz (En Güvenli)
+        </button>
+        <button class="btn btn-outline" onclick="requestOtp()" id="btnRequestOtp" style="border-color:#25D366; color:#128C7E; font-size:0.85rem; padding:6px;">
+          Bana Kod Gönder (Yavaş)
+        </button>
+      </div>
+      <p style="font-size:0.75rem; color:#64748b; margin-top:8px; line-height:1.3;">
+        <b>Tavsiye:</b> "Bota Yaz" butonunu kullanarak bota <b>"KOD"</b> yazıp gönderirseniz, numaranız anında doğrulanır ve kısıtlamalara takılmazsınız.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN USERS MODAL -->
+<div id="adminUsersModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:var(--card); padding:24px; border-radius:20px; width:95%; max-width:700px; max-height:85vh; overflow-y:auto; position:relative;">
+    <button onclick="document.getElementById('adminUsersModal').style.display='none'" style="position:absolute; right:16px; top:16px; background:transparent; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+    <h2><i class="fi fi-rr-users"></i> Giriş Yapan Öğretmenler</h2>
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:16px;">Sisteme giriş izni verilen kişiler ve özel güvenlik kodları.</p>
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:#f8fafc; padding:12px; border-radius:12px; border:1px solid var(--border);">
+      <div style="font-size:0.85rem">
+        Havuzdaki Boş Kod Sayısı: <strong id="adminPoolCount">0</strong>
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:0.7rem; margin-left:8px;" onclick="adminGenerateCodes()">+ 300 Yeni Çıkar</button>
+      </div>
+    </div>
+
+    <div class="tab-bar" style="margin-bottom:12px;">
+      <div class="tab active" id="adminTabSingle" onclick="switchAdminTab('single')" style="font-size:0.75rem; padding:8px 12px;">Tekli Ekle</div>
+      <div class="tab" id="adminTabBulk" onclick="switchAdminTab('bulk')" style="font-size:0.75rem; padding:8px 12px;">Toplu Ekle</div>
+      <div class="tab" id="adminTabLogs" onclick="switchAdminTab('logs')" style="font-size:0.75rem; padding:8px 12px;">Loglar</div>
+    </div>
+
+    <div id="adminSingleArea">
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="tel" id="addAdminPhone" placeholder="05xx..." style="flex:1;">
+        <input type="text" id="addAdminName" placeholder="Öğretmen Adı Soyadı" style="flex:2;">
+        <button class="btn btn-primary" style="width:auto; margin:0;" onclick="adminAddUser()">Ekle ve Kod Ata</button>
+      </div>
+    </div>
+
+    <div id="adminBulkArea" style="display:none; margin-bottom:16px;">
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:8px;">Format: <code>05551234567: Ad Soyad</code> (Her satıra bir kişi)</p>
+      <textarea id="bulkAdminInput" placeholder="05551112233: Ahmet Kaya&#10;05554445566: Ayşe Demir" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--border); font-size:0.8rem; margin-bottom:8px; font-family:monospace;"></textarea>
+      <button class="btn btn-primary" style="background:var(--success); border:none;" onclick="adminBulkAdd()">Toplu Yüklemeyi Başlat</button>
+    </div>
+
+    <div id="adminUsersArea">
+      <table style="width:100%; font-size:0.85rem;" id="adminUsersTable">
+        <thead><tr><th style="padding:8px; text-align:left;">Kişi / Telefon</th><th style="padding:8px; text-align:left;">Güvenlik Kodu</th><th style="padding:8px; text-align:center;">Cihaz Durumu</th><th style="width:50px;"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="adminLogArea" style="display:none;">
+      <table style="width:100%; font-size:0.75rem;" id="adminLogsTable">
+        <thead><tr style="border-bottom:1px solid var(--border);"><th style="padding:8px; text-align:left;">Tarih</th><th style="padding:8px; text-align:left;">Telefon</th><th style="padding:8px; text-align:left;">Olay</th><th style="padding:8px; text-align:left;">IP / Cihaz</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="mainApp" style="display:none;">
+
+  <!-- My Rank Banner -->
+  <div class="my-rank-banner" id="myRankBanner">
+    <h3>Hedeflediğin bölümde kaçıncı sıradasın?</h3>
+    <div class="rank-cards" id="rankCards"></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: Form -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <h2 style="display:flex; align-items:center; gap:8px;"><i class="fi fi-rr-user"></i> Öğretmen Bilgilerini Gir</h2>
+        </div>
+        <div class="card-body">
+
+
+
+          <div id="alertBox" class="alert"></div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label>Ad Soyad <span class="required">*</span></label>
+              <input type="text" id="inputAd" placeholder="Örn: Ayşe Kaya">
+            </div>
+            <div class="form-group">
+              <label>Telefon No <span class="required">*</span></label>
+              <input type="tel" id="inputTelefon" placeholder="Örn: 05xx xxx xx xx">
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label>Mevcut Alan <span class="required">*</span></label>
+              <select id="inputMevcutAlan">
+                <option value="">Seçin...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hedef Alan <span class="required">*</span></label>
+              <select id="inputHedefAlan">
+                <option value="">Seçin...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Hizmet Puanı <span class="required">*</span></label>
+            <div class="puan-input-wrap">
+              <input type="number" id="inputPuan" placeholder="Örn: 245.50" step="0.01" min="0" max="9999">
+              <span class="puan-unit">puan</span>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="form-group">
+              <label>Hizmet Süresi (Yıl) <span class="required">*</span></label>
+              <input type="number" id="inputSureYil" placeholder="Örn: 12" min="0" max="40">
+            </div>
+            <div class="form-group">
+              <label>Hizmet Süresi (Ay)</label>
+              <input type="number" id="inputSureAy" placeholder="0-11" min="0" max="11">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Görev Yaptığı İl <span class="required">*</span></label>
+            <select id="inputGorevIl">
+              <option value="">Seçin...</option>
+            </select>
+          </div>
+
+          <div class="divider">İl Tercihleri (en fazla 20, en az 1)</div>
+
+          <div class="special-cities-note" style="display:none;">
+          </div>
+
+          <div class="tercih-section">
+            <div class="form-group" style="margin-bottom:8px">
+              <label>1. Tercih <span class="required">*</span></label>
+              <select id="tercih1"><option value="">Seçin...</option></select>
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label>2. Tercih</label>
+              <select id="tercih2"><option value="">—</option></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>3. Tercih</label>
+              <select id="tercih3"><option value="">—</option></select>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="addTeacher()" style="margin-top:16px">
+            ➕ Simülasyona Ekle
+          </button>
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><h2 style="display:flex; align-items:center; gap:8px;"><i class="fi fi-rr-document"></i> Sıralama Kriterleri</h2></div>
+        <div class="card-body" style="font-size:0.82rem; line-height:1.7">
+          <p>1. <strong>Hizmet Puanı</strong> — Yüksek olan önce</p>
+          <p>2. <strong>Hizmet Süresi</strong> — Eşitlikte daha uzun süre olan önce</p>
+          <p>3. <strong>Kura</strong> — Hâlâ eşitse bilgisayar kurası</p>
+          <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
+          <p style="color:var(--muted); cursor:pointer;" ondblclick="toggleAdmin()" title="Admin girişi için çift tıklayın">Kaynak: Duyuru No 1310260428, Madde C-4</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Table -->
+    <div class="card">
+      <div class="tab-bar" id="tabBar">
+        <div class="tab active" onclick="switchTab('genel')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-globe"></i> Genel Sıralama</div>
+        <div class="tab" onclick="switchTab('sehir')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-marker"></i> Şehir Bazlı</div>
+      </div>
+
+      <div class="tab-content active" id="tab-genel">
+        <div class="filter-bar">
+          <label>Tercih Edilen İl Filtrele:</label>
+          <select id="filterIl" onchange="renderTable()">
+            <option value="">Tüm İller</option>
+          </select>
+          <label>Hedef Alan:</label>
+          <select id="filterHedef" onchange="renderTable()">
+            <option value="">Tüm Hedef Alanlar</option>
+          </select>
+          <label>Atama Türü:</label>
+          <select id="filterAtamaTuru" onchange="renderTable()">
+            <option value="">Tümü</option>
+            <option value="Sadece İl İçi">Sadece İl İçi</option>
+            <option value="Sadece İl Dışı">Sadece İl Dışı</option>
+            <option value="İl İçi Olmazsa İl Dışı">İl İçi Olmazsa İl Dışı</option>
+          </select>
+        </div>
+        <div class="stats-row" id="statsRow">
+          <span class="stat-item">Toplam: <strong id="statTotal">0</strong> kişi</span>
+          <span class="stat-item">En Yüksek Puan: <strong id="statMax">—</strong></span>
+          <span class="stat-item">Ortalama: <strong id="statAvg">—</strong></span>
+        </div>
+        <div class="table-wrap">
+          <table id="mainTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ad Soyad</th>
+                <th>Telefon</th>
+                <th>Mevcut → Hedef</th>
+                <th>Hizmet Puanı</th>
+                <th>Süre</th>
+                <th>Görev İli</th>
+                <th>Tercihleri</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <div class="icon"><i class="fi fi-rr-chart-histogram"></i></div>
+            <p>Henüz veri girilmedi.</p>
+            <p style="margin-top:6px;font-size:0.8rem">Sol formu doldurarak simülasyona katılabilirsiniz.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Şehir Bazlı -->
+      <div class="tab-content" id="tab-sehir">
+        <div class="filter-bar">
+          <label>Şehir Seç:</label>
+          <select id="filterSehir" onchange="renderCityView()">
+            <option value="">Şehir Seçin...</option>
+          </select>
+          <label>Hedef Alan:</label>
+          <select id="filterSehirAlan" onchange="renderCityView()">
+            <option value="">Tüm Alanlar</option>
+          </select>
+        </div>
+        <div id="cityViewContent">
+          <div class="empty-state">
+            <div class="icon">🏙️</div>
+            <p>Bir şehir seçin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const ILLER = [
+  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", 
+  "Ardahan", "Artvin", "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", 
+  "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", 
+  "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", 
+  "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Iğdır", "Isparta", "İstanbul", "İzmir", 
+  "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kırıkkale", 
+  "Kırklareli", "Kırşehir", "Kilis", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", 
+  "Mardin", "Mersin", "Muğla", "Muş", "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", 
+  "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Şanlıurfa", "Şırnak", "Tekirdağ", "Tokat", 
+  "Trabzon", "Tunceli", "Uşak", "Van", "Yalova", "Yozgat", "Zonguldak"
+];
+
+const IL_DISI_ILLER = [
+  "Ağrı","Ardahan","Bitlis","Hakkari","Iğdır","İstanbul","Kars","Muş",
+  "Siirt","Şanlıurfa","Şırnak","Van"
+];
+
+const ALANLAR = [
+  "Bilişim Teknolojileri",
+  "Biyoloji",
+  "Beden Eğitimi",
+  "Coğrafya",
+  "Çocuk Gelişimi ve Eğitimi",
+  "Din Kültürü ve Ahlak Bilgisi",
+  "El Sanatları",
+  "Felsefe",
+  "Fen Bilimleri",
+  "Fizik",
+  "Görsel Sanatlar",
+  "Güzel Sanatlar",
+  "Hemşirelik",
+  "İngilizce",
+  "Almanca",
+  "Fransızca",
+  "Arapça",
+  "Rusça",
+  "İspanyolca",
+  "İş ve Uğraşı Terapisi",
+  "Kimya",
+  "Matematik",
+  "Meslek Dersleri (Teknik)",
+  "Meslek Dersleri (Sağlık)",
+  "Meslek Dersleri (Ticaret)",
+  "Meslek Dersleri (Tarım)",
+  "Müzik",
+  "Okul Öncesi",
+  "Psikolojik Danışmanlık ve Rehberlik",
+  "Sınıf Öğretmenliği",
+  "Sosyal Bilgiler",
+  "Tarih",
+  "Teknoloji ve Tasarım",
+  "Türkçe",
+  "Türk Dili ve Edebiyatı",
+  "Özel Eğitim",
+  "Zihinsel Engelliler",
+  "İşitme Engelliler",
+  "Görme Engelliler",
+];
+
+const SAMPLE_NAMES = [
+  "Ahmet Yılmaz","Fatma Demir","Mehmet Kaya","Ayşe Çelik","Ali Şahin",
+  "Zeynep Arslan","Mustafa Koç","Hatice Aydın","Hasan Doğan","Elif Erdoğan",
+  "İbrahim Kılıç","Merve Yıldız","Ömer Çetin","Selin Özdemir","Burak Aslan"
+];
+
+let teachers = [];
+let myClientId = localStorage.getItem('sim_client_id');
+if (!myClientId) {
+  myClientId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  localStorage.setItem('sim_client_id', myClientId);
+}
+let lastAddedId = localStorage.getItem('sim_last_added_id');
+if (lastAddedId) lastAddedId = Number(lastAddedId);
+
+let isFormDisabled = false;
+let activeTab = 'genel';
+const API_URL = '/api/teachers';
+let fetchInterval = null;
+
+let currentSessionToken = localStorage.getItem('sim_session_token');
+
+function getHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const adminSecret = localStorage.getItem('sim_admin_secret');
+  if (adminSecret) headers['x-admin-secret'] = adminSecret;
+  if (currentSessionToken) headers['x-session-token'] = currentSessionToken;
+  return headers;
+}
+
+// ============================================================
+// AUTHENTICATION LOGIC
+// ============================================================
+
+function showLoginAlert(msg, type='error') {
+  const el = document.getElementById('alertLogin');
+  if(el) {
+    el.textContent = msg;
+    el.className = `alert ${type} show`;
+  } else {
+    alert(msg); // Fallback
+  }
+}
+
+function processUnauthorized() {
+  localStorage.removeItem('sim_session_token');
+  currentSessionToken = null;
+  const ma = document.getElementById('mainApp');
+  const ls = document.getElementById('loginScreen');
+  if(ma) ma.style.display = 'none';
+  if(ls) ls.style.display = 'block';
+  if (fetchInterval) {
+    clearInterval(fetchInterval);
+    fetchInterval = null;
+  }
+}
+
+function toggleRequestBox() {
+  console.log('toggleRequestBox called');
+  const box = document.getElementById('phoneRequestBox');
+  const btn = document.getElementById('btnShowRequest');
+  if (!box) { console.error('phoneRequestBox not found'); return; }
+  
+  const isHidden = box.style.display === 'none' || box.style.display === '';
+  if (isHidden) {
+    box.style.display = 'block';
+    if(btn) btn.innerHTML = '<i class="fi fi-rr-cross-small"></i> İsteği Kapat';
+    const al = document.getElementById('alertLogin');
+    if(al) al.className = 'alert';
+  } else {
+    hideRequestBox();
+  }
+}
+
+function hideRequestBox() {
+  const box = document.getElementById('phoneRequestBox');
+  const btn = document.getElementById('btnShowRequest');
+  if(box) box.style.display = 'none';
+  if(btn) btn.innerHTML = '<i class="fi fi-brands-whatsapp" style="color:#25D366"></i> Kodu WhatsApp\'tan İste';
+}
+
+async function requestOtp() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  if (!phone) { showLoginAlert('Lütfen telefon numaranızı girin.', 'error'); return; }
+  
+  const btn = document.getElementById('btnRequestOtp');
+  if(btn) { btn.disabled = true; btn.innerText = 'Gönderiliyor...'; }
+
+  try {
+    const res = await fetch('/api/auth/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showLoginAlert('Kod talebi alındı. Botun cevap vermesini bekleyin.', 'success');
+    } else {
+      showLoginAlert(data.error || 'Gönderim başarısız.');
+    }
+  } catch(e) {
+    showLoginAlert('Sunucuya bağlanılamadı.');
+  } finally {
+    if(btn){ 
+      btn.innerText = 'Bana Kod Gönder (Yavaş)'; 
+      btn.disabled = false; 
+    }
+  }
+}
+
+function openWaLink() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  fetch('/api/auth/bot-info').then(res => res.json()).then(data => {
+    if (data.phone) {
+      const waUrl = `https://wa.me/${data.phone}?text=KOD%20ISTIYORUM`;
+      window.open(waUrl, '_blank');
+    } else {
+       showLoginAlert('Bot numarası şu an alınamadı.', 'error');
+    }
+  });
+}
+
+async function verifyOtp() {
+  const codeInput = document.getElementById('loginCode');
+  if(!codeInput) return;
+  const code = codeInput.value.trim().toUpperCase();
+  if (!code) return showLoginAlert('Lütfen güvenlik kodunuzu giriniz.');
+
+  const btn = document.getElementById('btnVerifyOtp');
+  if(btn){ btn.innerText = 'Bekleyin...'; btn.disabled = true; }
+
+  try {
+    const res = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, client_device_id: myClientId })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('sim_session_token', data.token);
+      localStorage.setItem('sim_user_phone', data.phone);
+      currentSessionToken = data.token;
+      const ls = document.getElementById('loginScreen');
+      const ma = document.getElementById('mainApp');
+      if(ls) ls.style.display = 'none';
+      if(ma) ma.style.display = 'block';
+      const btnLogout = document.getElementById('btnLogout');
+      if(btnLogout) btnLogout.style.display = 'inline-flex';
+      initAppFlow();
+      await updateTeacherFormFields();
+    } else {
+      showLoginAlert(data.error || 'Doğrulama başarısız.');
+    }
+  } catch(e) {
+    showLoginAlert('Sunucuya bağlanılamadı.');
+  } finally {
+    if(btn) { btn.innerText = 'Güvenlik Kodunu Gir'; btn.disabled = false; }
+  }
+}
+
+function logoutApp() {
+  if(!confirm("Oturumu kapatmak istediğinize emin misiniz?")) return;
+  localStorage.removeItem('sim_session_token');
+  localStorage.removeItem('sim_admin_secret');
+  localStorage.removeItem('sim_user_phone');
+  currentSessionToken = null;
+  location.reload();
+}
+
+// ============================================================
+// ADMIN USERS MANAGMENT
+// ============================================================
+
+async function openAdminUsers() {
+  const modal = document.getElementById('adminUsersModal');
+  if(modal) modal.style.display = 'flex';
+  switchAdminTab('single');
+  await loadAdminUsers();
+}
+
+async function loadAdminUsers() {
+  try {
+    const res = await fetch('/api/admin/users', { headers: getHeaders() });
+    if (!res.ok) return;
+    const data = await res.json();
+    document.getElementById('adminPoolCount').innerText = data.availableCodes;
+    const tbody = document.querySelector('#adminUsersTable tbody');
+    tbody.innerHTML = data.users.map(item => `
+      <tr>
+        <td style="padding:8px;">
+          <strong>${item.name || 'İsimsiz'}</strong><br>
+          <span style="font-size:0.75rem; color:var(--muted)">${item.phone}</span>
+        </td>
+        <td style="padding:8px; font-family:monospace; font-size:1.1rem; letter-spacing:1px;">${item.security_code}</td>
+        <td style="padding:8px; text-align:center;">
+          ${item.device_fp 
+            ? '<span style="color:var(--success); font-size:0.75rem;"><i class="fi fi-rr-lock"></i> Kilitli</span>' 
+            : '<span style="color:var(--warning); font-size:0.75rem;">Boşta</span>'}
+        </td>
+        <td style="padding:8px; text-align:right;"><button class="btn btn-danger-sm" onclick="adminDelUser('${item.phone}')" title="Sil">&times;</button></td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
+
+async function adminGenerateCodes() {
+  if(!confirm("Havuza 300 yeni rastgele kod eklenecek. Emin misiniz?")) return;
+  try {
+    const res = await fetch('/api/admin/codes/generate', { method: 'POST', headers: getHeaders() });
+    if(res.ok) loadAdminUsers();
+  } catch(e) {}
+}
+
+async function adminAddUser() {
+  const phone = document.getElementById('addAdminPhone').value.trim();
+  const name = document.getElementById('addAdminName').value.trim();
+  if (!phone) return alert("Telefon gerekli!");
+  try {
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({phone, name})
+    });
+    const d = await res.json();
+    if (res.ok) {
+      document.getElementById('addAdminPhone').value = '';
+      document.getElementById('addAdminName').value = '';
+      loadAdminUsers();
+      alert("Başarıyla atandı. Kod: " + d.assigned_code);
+    } else {
+      alert("Hata: " + d.error);
+    }
+  } catch(e) {}
+}
+
+function switchAdminTab(type) {
+  const sa = document.getElementById('adminSingleArea');
+  const ba = document.getElementById('adminBulkArea');
+  const ua = document.getElementById('adminUsersArea');
+  const la = document.getElementById('adminLogArea');
+  
+  const ts = document.getElementById('adminTabSingle');
+  const tb = document.getElementById('adminTabBulk');
+  const tl = document.getElementById('adminTabLogs');
+
+  [sa, ba, ua, la].forEach(el => { if(el) el.style.display = 'none'; });
+  [ts, tb, tl].forEach(el => { if(el) el.classList.remove('active'); });
+
+  if (type === 'single') {
+    if(sa) sa.style.display = 'block';
+    if(ua) ua.style.display = 'block';
+    if(ts) ts.classList.add('active');
+  } else if (type === 'bulk') {
+    if(ba) ba.style.display = 'block';
+    if(ua) ua.style.display = 'block';
+    if(tb) tb.classList.add('active');
+  } else if (type === 'logs') {
+    if(la) la.style.display = 'block';
+    if(tl) tl.classList.add('active');
+    loadAdminLogs();
+  }
+}
+
+async function loadAdminLogs() {
+  try {
+    const res = await fetch('/api/admin/logs', { headers: getHeaders() });
+    if (!res.ok) return;
+    const logs = await res.json();
+    const tbody = document.querySelector('#adminLogsTable tbody');
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">Henüz log kaydı bulunmuyor.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = logs.map(log => {
+      const dateStr = new Date(log.datetime).toLocaleString('tr-TR');
+      return `
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:6px; color:var(--muted)">${dateStr}</td>
+          <td style="padding:6px;"><strong>${log.phone}</strong></td>
+          <td style="padding:6px;"><span style="font-size:0.7rem; background:#f1f5f9; padding:2px 6px; border-radius:4px;">${log.event}</span></td>
+          <td style="padding:6px; font-size:0.7rem; color:var(--muted)" title="${log.ua}">${log.ip}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch(e) {}
+}
+
+async function adminBulkAdd() {
+  const input = document.getElementById('bulkAdminInput').value.trim();
+  if (!input) return alert("Lütfen verileri giriniz.");
+  
+  const lines = input.split('\n');
+  const users = [];
+  
+  lines.forEach(line => {
+    if (!line.trim()) return;
+    let [phone, name] = line.split(':');
+    if (!phone) return;
+    users.push({
+      phone: phone.trim(),
+      name: name ? name.trim() : 'İsimsiz'
+    });
+  });
+
+  if (users.length === 0) return alert("Geçerli bir veri bulunamadı.");
+  
+  if (!confirm(`${users.length} kişi eklenecek. Emin misiniz?`)) return;
+
+  try {
+    const res = await fetch('/api/admin/users/bulk', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ users })
+    });
+    const data = await res.json();
+    alert(`İşlem Tamamlandı!\nEklenen: ${data.added}\nAtlanan (Zaten var): ${data.skipped}\nHatalar: ${data.errors.length}`);
+    document.getElementById('bulkAdminInput').value = '';
+    loadAdminUsers();
+  } catch(e) {
+    alert("Hata oluştu: " + e.message);
+  }
+}
+
+async function adminDelUser(phone) {
+  if (!confirm(phone + ' numarasını sistemden tamamen silmek istiyor musunuz?')) return;
+  try {
+    await fetch('/api/admin/users/' + phone, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    loadAdminUsers();
+  } catch(e) {}
+}
+
+// ============================================================
+// APP SETTINGS
+// ============================================================
+
+async function fetchSettings() {
+  try {
+    const res = await fetch('/api/settings', { headers: getHeaders() });
+    if (res.status === 401) { processUnauthorized(); return; }
+    const data = await res.json();
+    if (isFormDisabled !== data.isFormDisabled) {
+      isFormDisabled = data.isFormDisabled;
+      updateFormUI();
+    }
+  } catch(e) {}
+}
+
+function updateFormUI() {
+  const inputs = document.querySelectorAll('.card-body input, .card-body select, .card-body button.btn-primary');
+  let alertEl = document.getElementById('formDisabledAlert');
+  
+  if (isFormDisabled) {
+    inputs.forEach(el => el.disabled = true);
+    if (!alertEl) {
+       alertEl = document.createElement('div');
+       alertEl.id = 'formDisabledAlert';
+       alertEl.className = 'alert error show';
+       alertEl.innerHTML = '<i class="fi fi-rr-lock"></i> Yeni kayıt alımı geçici olarak durdurulmuştur.';
+       alertEl.style.marginBottom = '12px';
+       document.querySelector('.card-body').prepend(alertEl);
+    }
+    const btn = document.getElementById('btnToggleForm');
+    if (btn) {
+       btn.innerHTML = '<i class="fi fi-rr-unlock"></i> Kayıtları Aç';
+       btn.style.background = 'var(--success)';
+    }
+  } else {
+    inputs.forEach(el => el.disabled = false);
+    if (alertEl) alertEl.remove();
+    const btn = document.getElementById('btnToggleForm');
+    if (btn) {
+       btn.innerHTML = '<i class="fi fi-rr-lock"></i> Kayıtları Durdur';
+       btn.style.background = 'var(--warning)';
+    }
+  }
+}
+
+async function toggleFormStatus() {
+  const adminSecret = localStorage.getItem('sim_admin_secret');
+  if(!adminSecret) return;
+  const newStatus = !isFormDisabled;
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ isFormDisabled: newStatus })
+    });
+    if (res.status === 401) { processUnauthorized(); return; }
+    if (res.ok) {
+      isFormDisabled = newStatus;
+      updateFormUI();
+    }
+  } catch(e) {}
+}
+
+
+async function fetchTeachers() {
+  try {
+    const res = await fetch(API_URL, { headers: getHeaders() });
+    if (res.status === 401) { processUnauthorized(); return; }
+    if (!res.ok) throw new Error('Network response was not ok');
+    teachers = await res.json();
+    renderTable();
+    renderCityView();
+    const userPhone = localStorage.getItem('sim_user_phone');
+    const myTeacher = teachers.find(t => t.isMe || (lastAddedId && t.id === lastAddedId));
+    if (myTeacher) renderMyRank(myTeacher, false); // Do not scroll on background fetch
+    await fetchSettings();
+  } catch (err) {
+    console.error('Failed to fetch teachers:', err);
+  }
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+
+function initAppFlow() {
+  fetchTeachers();
+  if (!fetchInterval) {
+    fetchInterval = setInterval(fetchTeachers, 15000);
+  }
+}
+
+async function updateTeacherFormFields() {
+  let userPhone = localStorage.getItem('sim_user_phone');
+  const isAdmin = localStorage.getItem('sim_admin_secret');
+  const sessionToken = localStorage.getItem('sim_session_token');
+
+  // If phone is missing but we have a token, fetch it from server
+  if (!userPhone && sessionToken && !isAdmin) {
+    try {
+      const res = await fetch('/api/auth/me', { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.phone) {
+          userPhone = data.phone;
+          localStorage.setItem('sim_user_phone', userPhone);
+        }
+      }
+    } catch(e) {}
+  }
+
+  const inputTel = document.getElementById('inputTelefon');
+  if (userPhone && inputTel) {
+     inputTel.value = userPhone;
+     if (!isAdmin) {
+        inputTel.readOnly = true;
+        inputTel.style.background = '#f1f5f9';
+        inputTel.title = 'Giriş yapılan numara değiştirilemez.';
+     }
+  }
+}
+
+async function init() {
+  const isAdmin = localStorage.getItem('sim_admin_secret');
+  if (isAdmin) {
+    const badge = document.getElementById('adminBadge');
+    if (badge) badge.style.display = 'block';
+    
+    const btnCsv = document.getElementById('btnExportCsv');
+    if (btnCsv) btnCsv.style.display = 'inline-flex';
+    
+    const btnToggle = document.getElementById('btnToggleForm');
+    if (btnToggle) btnToggle.style.display = 'inline-flex';
+
+    const btnManage = document.getElementById('btnManageUsers');
+    if (btnManage) btnManage.style.display = 'inline-flex';
+  }
+
+  // Populate selects
+  const alanSelects = ['inputMevcutAlan','inputHedefAlan','filterHedef','filterSehirAlan'];
+  alanSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    ALANLAR.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      el.appendChild(opt);
+    });
+  });
+
+  const ilSelects = ['inputGorevIl','tercih1','tercih2','tercih3','filterIl','filterSehir'];
+  ilSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    
+    if (id.startsWith('tercih')) {
+      IL_DISI_ILLER.forEach(il => {
+        const opt = document.createElement('option');
+        opt.value = il; opt.textContent = il;
+        el.appendChild(opt);
+      });
+      const sep = document.createElement('option');
+      sep.disabled = true; sep.textContent = '──────────';
+      el.appendChild(sep);
+      ILLER.forEach(il => {
+        if (!IL_DISI_ILLER.includes(il)) {
+          const opt = document.createElement('option');
+          opt.value = il; opt.textContent = il;
+          el.appendChild(opt);
+        }
+      });
+    } else {
+      ILLER.forEach(il => {
+        const opt = document.createElement('option');
+        opt.value = il; opt.textContent = il;
+        el.appendChild(opt);
+      });
+    }
+  });
+
+  if (currentSessionToken || isAdmin) {
+    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('loginScreen').style.display = 'none';
+    const btnLogout = document.getElementById('btnLogout');
+    if(btnLogout) btnLogout.style.display = 'inline-flex';
+
+    await updateTeacherFormFields();
+    initAppFlow();
+  } else {
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+  }
+}
+
+// ============================================================
+// ADD TEACHER
+// ============================================================
+
+function addTeacher() {
+  const ad = document.getElementById('inputAd').value.trim();
+  const telefon = document.getElementById('inputTelefon').value.trim();
+  const mevcutAlan = document.getElementById('inputMevcutAlan').value;
+  const hedefAlan = document.getElementById('inputHedefAlan').value;
+  const puan = parseFloat(document.getElementById('inputPuan').value);
+  const sureYil = parseInt(document.getElementById('inputSureYil').value) || 0;
+  const sureAy = parseInt(document.getElementById('inputSureAy').value) || 0;
+  const gorevIl = document.getElementById('inputGorevIl').value;
+  const t1 = document.getElementById('tercih1').value;
+  const t2 = document.getElementById('tercih2').value;
+  const t3 = document.getElementById('tercih3').value;
+
+  // Validation
+  if (!ad) return showAlert('Ad Soyad giriniz.', 'error');
+  if (!telefon) return showAlert('Telefon No giriniz.', 'error');
+  if (!mevcutAlan) return showAlert('Mevcut alan seçiniz.', 'error');
+  if (!hedefAlan) return showAlert('Hedef alan seçiniz.', 'error');
+  if (mevcutAlan === hedefAlan) return showAlert('Mevcut alan ve hedef alan aynı olamaz.', 'error');
+  if (isNaN(puan) || puan <= 0) return showAlert('Geçerli bir hizmet puanı giriniz.', 'error');
+  if (sureYil === 0 && sureAy === 0) return showAlert('Hizmet süresini giriniz.', 'error');
+  if (!gorevIl) return showAlert('Görev yapılan il seçiniz.', 'error');
+  if (!t1) return showAlert('En az 1 tercih giriniz.', 'error');
+
+  const tercipler = [t1, t2, t3].filter(t => t);
+
+  const teacher = {
+    id: Date.now(),
+    ad,
+    telefon,
+    mevcutAlan,
+    hedefAlan,
+    puan,
+    sureYil,
+    sureAy,
+    sureToplam: sureYil * 12 + sureAy, // aylar bazında
+    gorevIl,
+    tercipler,
+    addedAt: new Date().toISOString(),
+    clientId: myClientId
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(teacher)
+  }).then(async res => {
+    if (res.status === 401) { processUnauthorized(); return; }
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert(data.error || 'Kayıt eklenirken hata oluştu.', 'error');
+    } else {
+      teachers.push(teacher);
+      lastAddedId = teacher.id;
+      localStorage.setItem('sim_last_added_id', lastAddedId);
+      
+      showAlert(`"${ad}" simülasyona eklendi! ✓`, 'success');
+
+      // Clear form
+      document.getElementById('inputAd').value = '';
+      document.getElementById('inputTelefon').value = '';
+      document.getElementById('inputPuan').value = '';
+      document.getElementById('inputSureYil').value = '';
+      document.getElementById('inputSureAy').value = '';
+      document.getElementById('tercih1').value = '';
+      document.getElementById('tercih2').value = '';
+      document.getElementById('tercih3').value = '';
+
+      renderTable();
+      renderCityView();
+      renderMyRank(teacher);
+
+      // Scroll to their rank
+      setTimeout(() => {
+        const el = document.getElementById(`row-${teacher.id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }).catch(err => {
+    console.error(err);
+    showAlert('Sunucuya bağlanılamadı.', 'error');
+  });
+}
+
+// ============================================================
+// REMOVE
+// ============================================================
+
+function removeTeacher(id) {
+  fetch(API_URL + '/' + id, { 
+    method: 'DELETE',
+    headers: getHeaders()
+  }).then(async res => {
+    if (res.status === 401) { processUnauthorized(); return; }
+    if (!res.ok) {
+      const data = await res.json();
+      showAlert(data.error || 'Silinirken hata oluştu', 'error');
+      return;
+    }
+    teachers = teachers.filter(t => t.id !== id);
+    if (lastAddedId === id) {
+      lastAddedId = null;
+      localStorage.removeItem('sim_last_added_id');
+      document.getElementById('myRankBanner').classList.remove('show');
+    }
+    renderTable();
+    renderCityView();
+    showAlert('Kaydınız başarıyla silindi.', 'success');
+  }).catch(err => {
+    console.error(err);
+    showAlert('Sunucu bağlantı hatası.', 'error');
+  });
+}
+
+// clearAll() kaldırıldı, çünkü paylaşımlı veritabanında tehlikeli.
+
+// ============================================================
+// RENDER TABLE
+// ============================================================
+
+function sortTeachers(list) {
+  return [...list].sort((a, b) => {
+    if (b.puan !== a.puan) return b.puan - a.puan;
+    if (b.sureToplam !== a.sureToplam) return b.sureToplam - a.sureToplam;
+    return a.id - b.id; // kura simülasyonu: ekleme sırası
+  });
+}
+function renderTable() {
+  const filterIl = document.getElementById('filterIl').value;
+  const filterHedef = document.getElementById('filterHedef').value;
+  const filterAtamaTuru = document.getElementById('filterAtamaTuru').value;
+
+  let filtered = teachers.filter(t => {
+    if (filterIl && (!t.tercipler || !t.tercipler.includes(filterIl))) return false;
+    if (filterHedef && t.hedefAlan !== filterHedef) return false;
+    
+    if (filterAtamaTuru) {
+      const gorevIl = t.gorevIl;
+      const tercihler = t.tercipler || [];
+      let status = '';
+      
+      if (tercihler.length > 0) {
+        if (!tercihler.includes(gorevIl)) {
+          status = 'Sadece İl Dışı';
+        } else if (tercihler.every(c => c === gorevIl)) {
+          status = 'Sadece İl İçi';
+        } else {
+          status = 'İl İçi Olmazsa İl Dışı';
+        }
+      }
+      
+      if (status !== filterAtamaTuru) return false;
+    }
+    
+    return true;
+  });
+
+  const sorted = sortTeachers(filtered);
+
+  const tbody = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+  const table = document.getElementById('mainTable');
+
+  if (sorted.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+    table.style.display = 'none';
+  } else {
+    emptyState.style.display = 'none';
+    table.style.display = 'table';
+    tbody.innerHTML = sorted.map((t, i) => renderRow(t, i + 1)).join('');
+  }
+
+  // Stats
+  document.getElementById('statTotal').textContent = filtered.length;
+  if (filtered.length > 0) {
+    const max = Math.max(...filtered.map(t => t.puan));
+    const avg = (filtered.reduce((s, t) => s + t.puan, 0) / filtered.length).toFixed(2);
+    document.getElementById('statMax').textContent = max.toFixed(2);
+    document.getElementById('statAvg').textContent = avg;
+  } else {
+    document.getElementById('statMax').textContent = '—';
+    document.getElementById('statAvg').textContent = '—';
+  }
+}
+
+function formatTelefon(tel) {
+  if (!tel) return '-';
+  const tStr = String(tel).replace(/\s+/g, '');
+  if (tStr.length < 8) return '***';
+  return tStr.substring(0, 4) + '***' + tStr.substring(tStr.length - 4);
+}
+
+function toggleAdmin() {
+  const current = localStorage.getItem('sim_admin_secret');
+  if (current) {
+    if (confirm('Admin yetkisi kapatılsın mı?')) {
+      localStorage.removeItem('sim_admin_secret');
+      window.location.reload();
+    }
+  } else {
+    const p = prompt('Admin Şifresi:');
+    if (p) {
+      localStorage.setItem('sim_admin_secret', p);
+      window.location.reload();
+    }
+  }
+}
+
+function renderRow(t, rank) {
+  const isMe = (t.id === lastAddedId) || (t.clientId && String(t.clientId) === String(myClientId));
+  const isAdmin = !!localStorage.getItem('sim_admin_secret');
+  const canDelete = isMe || isAdmin;
+  const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+
+  const tercihHTML = t.tercipler.map((c, i) => {
+    const isSpecial = IL_DISI_ILLER.includes(c);
+    return `<span class="city-tag city-tag-${i+1}${isSpecial ? ' city-tag-special' : ''}">${i+1}. ${c}</span>`;
+  }).join('');
+
+  return `<tr id="row-${t.id}" class="${isMe ? 'highlight' : ''}">
+    <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+    <td style="font-weight:${isMe?'600':'400'}">${t.ad}${isMe ? ' 👈' : ''}</td>
+    <td style="font-family:monospace;color:var(--muted)">${isAdmin ? (t.telefon || '-') : formatTelefon(t.telefon)}</td>
+    <td><span style="font-size:0.75rem">${t.mevcutAlan}</span> → <span style="font-size:0.75rem;color:var(--primary)">${t.hedefAlan}</span></td>
+    <td style="font-weight:600;color:var(--primary)">${t.puan.toFixed(2)}</td>
+    <td style="color:var(--muted)">${t.sureYil}y ${t.sureAy}a</td>
+    <td>${t.gorevIl}</td>
+    <td>${tercihHTML}</td>
+    <td>${canDelete ? `<button class="btn btn-danger-sm" onclick="removeTeacher(${t.id})">Sil</button>` : ''}</td>
+  </tr>`;
+}
+
+// ============================================================
+// CITY VIEW
+// ============================================================
+
+function renderCityView() {
+  const city = document.getElementById('filterSehir').value;
+  const alan = document.getElementById('filterSehirAlan').value;
+  const container = document.getElementById('cityViewContent');
+
+  if (!city) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🏙️</div><p>Bir şehir seçin.</p></div>`;
+    return;
+  }
+
+  // Teachers who preferred this city
+  let candidates = teachers.filter(t => t.tercipler.includes(city));
+  if (alan) candidates = candidates.filter(t => t.hedefAlan === alan);
+
+  const sorted = sortTeachers(candidates);
+
+  if (sorted.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon"><i class="fi fi-rr-search"></i></div><p><strong>${city}</strong> için henüz tercih yapılmadı.</p></div>`;
+    return;
+  }
+
+  // Group by hedefAlan
+  const byAlan = {};
+  sorted.forEach(t => {
+    if (!byAlan[t.hedefAlan]) byAlan[t.hedefAlan] = [];
+    byAlan[t.hedefAlan].push(t);
+  });
+
+  let html = `<div style="padding:16px">`;
+  html += `<div class="stats-row" style="padding:0 0 12px;border:none">
+    <span class="stat-item">${city} için toplam: <strong>${candidates.length}</strong> aday</span>
+  </div>`;
+
+  Object.entries(byAlan).forEach(([hedefAlan, list]) => {
+    html += `<div style="margin-bottom:20px">
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);margin-bottom:8px;padding:6px 10px;background:#eff6ff;border-radius:6px">
+        ${hedefAlan} → ${city} (${list.length} aday)
+      </div>
+      <div style="overflow-x: auto; width: 100%;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+        <thead><tr>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">#</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Ad Soyad</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Telefon</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Hizmet Puanı</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Süre</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Tercih Sırası</th>
+          <th style="padding:8px;background:#f9fafb;border-bottom:2px solid var(--border);text-align:left">Görev İli</th>
+        </tr></thead>
+        <tbody>`;
+
+    list.forEach((t, i) => {
+      const rank = i + 1;
+      const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+      const isMe = t.id === lastAddedId;
+      const isAdmin = !!localStorage.getItem('sim_admin_secret');
+      const canDelete = isMe || isAdmin;
+      const tercihSira = t.tercipler.indexOf(city) + 1;
+      html += `<tr style="${isMe ? 'background:var(--highlight)' : ''}">
+        <td style="padding:8px"><span class="rank-badge ${rankClass}">${rank}</span></td>
+        <td style="padding:8px;font-weight:${isMe?'600':'400'}">${t.ad}${isMe ? ' 👈' : ''}</td>
+        <td style="padding:8px;font-family:monospace;color:var(--muted)">${isAdmin ? (t.telefon || '-') : formatTelefon(t.telefon)}</td>
+        <td style="padding:8px;font-weight:600;color:var(--primary)">${t.puan.toFixed(2)}</td>
+        <td style="padding:8px;color:var(--muted)">${t.sureYil}y ${t.sureAy}a</td>
+        <td style="padding:8px"><span class="city-tag city-tag-${tercihSira}">${tercihSira}. tercih</span></td>
+        <td style="padding:8px">${t.gorevIl}</td>
+        <td style="padding:8px">${canDelete ? `<button class="btn btn-danger-sm" onclick="removeTeacher(${t.id})">Sil</button>` : ''}</td>
+      </tr>`;
+    });
+
+    html += `</tbody></table></div></div>`;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// ============================================================
+// MY RANK
+// ============================================================
+
+function renderMyRank(teacher, shouldScroll = false) {
+  const banner = document.getElementById('myRankBanner');
+  const cards = document.getElementById('rankCards');
+
+  if (!teacher || !teacher.tercipler || !teacher.tercipler.length) {
+    banner.classList.remove('show');
+    return;
+  }
+
+  let cardsHTML = '';
+  teacher.tercipler.forEach((city, i) => {
+    // candidates for this city & hedef alan
+    const candidates = sortTeachers(
+      teachers.filter(t => t.tercipler.includes(city) && t.hedefAlan === teacher.hedefAlan)
+    );
+    const rank = candidates.findIndex(t => t.id === teacher.id) + 1;
+    const total = candidates.length;
+
+    cardsHTML += `<div class="rank-card">
+      <div class="city">${i+1}. tercih</div>
+      <div class="city" style="font-weight:600;font-size:0.85rem">${city}</div>
+      <div class="num">${rank}</div>
+      <div class="total">/ ${total} aday</div>
+    </div>`;
+  });
+
+  cards.innerHTML = cardsHTML;
+  banner.classList.add('show');
+  if (shouldScroll) {
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', (i === 0 && tab === 'genel') || (i === 1 && tab === 'sehir'));
+  });
+  document.getElementById('tab-genel').classList.toggle('active', tab === 'genel');
+  document.getElementById('tab-sehir').classList.toggle('active', tab === 'sehir');
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+
+function showAlert(msg, type) {
+  const el = document.getElementById('alertBox');
+  el.textContent = msg;
+  el.className = `alert ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ============================================================
+// PERSIST
+// ============================================================
+// saveData() fonksiyonuna artık gerek kalmadı vì fetch ile ekleniyor.
+
+// ============================================================
+// EXPORT CSV (Admin Only)
+// ============================================================
+function exportCsv() {
+  if (!teachers || teachers.length === 0) return alert('Dışa aktarılacak veri yok.');
+  
+  let csvContent = 'ID,Ad Soyad,Telefon,Mevcut Alan,Hedef Alan,Hizmet Puanı,Görev Yılı,Görev Ayı,Toplam Ay,Görev İli,Tercihler,Eklenme Tarihi\n';
+  
+  teachers.forEach(t => {
+    let row = [
+      t.id,
+      `"${(t.ad||'').replace(/"/g, '""')}"`,
+      `"${t.telefon||''}"`,
+      `"${t.mevcutAlan||''}"`,
+      `"${t.hedefAlan||''}"`,
+      t.puan || 0,
+      t.sureYil || 0,
+      t.sureAy || 0,
+      t.sureToplam || 0,
+      `"${t.gorevIl||''}"`,
+      `"${(t.tercipler||[]).join(' - ')}"`,
+      `"${t.addedAt||''}"`
+    ];
+    csvContent += row.join(',') + '\n';
+  });
+  
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "alan_degisikligi_veriler.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
