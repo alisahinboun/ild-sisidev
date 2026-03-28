@@ -547,9 +547,9 @@
     <!-- RIGHT: Table -->
     <div class="card">
       <div class="tab-bar" id="tabBar">
-        <div class="tab active" onclick="switchTab('genel')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-globe"></i> Genel Sıralama</div>
-        <div class="tab" onclick="switchTab('sehir')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-marker"></i> Şehir Bazlı</div>
-        <div class="tab" onclick="switchTab('isi')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-heat" style="color:#ef4444"></i> Şehir Isı Tablosu</div>
+        <div id="mainTab-genel" class="tab active" onclick="switchTab('genel')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-globe"></i> Genel Sıralama</div>
+        <div id="mainTab-sehir" class="tab" onclick="switchTab('sehir')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-marker"></i> Şehir Bazlı</div>
+        <div id="mainTab-isi" class="tab" onclick="switchTab('isi')" style="display:flex; align-items:center; gap:6px;"><i class="fi fi-rr-heat" style="color:#ef4444"></i> Şehir Isı Tablosu</div>
       </div>
 
       <div class="tab-content active" id="tab-genel">
@@ -625,7 +625,7 @@
       <div class="tab-content" id="tab-isi">
         <div style="padding:8px 0 4px;">
           <label style="font-size:0.82rem; color:var(--muted); margin-right:8px;">Branş Filtrele:</label>
-          <select id="filterIsiAlan" onchange="renderHeatTab()" style="font-size:0.82rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border);">
+          <select id="filterIsiAlan" onchange="this.dataset.userChanged='1'; renderHeatTab();" style="font-size:0.82rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border);">
             <option value="">Tüm Alanlar</option>
           </select>
         </div>
@@ -1104,6 +1104,7 @@ async function fetchTeachers() {
     });
     renderTable();
     renderCityView();
+    if (activeTab === 'isi') renderHeatTab();
     const userPhone = localStorage.getItem('sim_user_phone');
     const myTeacher = teachers.find(t => t.isMe || (lastAddedId && t.id === lastAddedId));
     if (myTeacher) renderMyRank(myTeacher, false); // Do not scroll on background fetch
@@ -1711,14 +1712,19 @@ function renderMyRank(teacher, shouldScroll = false) {
 
 function switchTab(tab) {
   activeTab = tab;
-  const tabs = document.querySelectorAll('.tab');
-  tabs[0].classList.toggle('active', tab === 'genel');
-  tabs[1].classList.toggle('active', tab === 'sehir');
-  tabs[2].classList.toggle('active', tab === 'isi');
-  document.getElementById('tab-genel').classList.toggle('active', tab === 'genel');
-  document.getElementById('tab-sehir').classList.toggle('active', tab === 'sehir');
-  document.getElementById('tab-isi').classList.toggle('active', tab === 'isi');
-  if (tab === 'isi') renderHeatTab();
+  ['genel','sehir','isi'].forEach(t => {
+    const btn = document.getElementById('mainTab-' + t);
+    const content = document.getElementById('tab-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (content) content.classList.toggle('active', t === tab);
+  });
+  if (tab === 'isi') {
+    const sel = document.getElementById('filterIsiAlan');
+    if (sel && !sel.dataset.userChanged && sel.value === '') {
+      sel.value = 'Psikolojik Dan\u0131\u015fmanl\u0131k ve Rehberlik';
+    }
+    renderHeatTab();
+  }
 }
 
 // ============================================================
