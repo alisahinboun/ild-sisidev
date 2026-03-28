@@ -1545,7 +1545,7 @@ function renderHeatTab() {
   const counts = {};
   let total = 0;
 
-  if (!window.teachers || !Array.isArray(teachers) || teachers.length === 0) {
+  if (!Array.isArray(teachers) || teachers.length === 0) {
     container.innerHTML = `<div class="empty-state"><div class="icon"><i class="fi fi-rr-chart-histogram"></i></div><p>Henüz sisteme tercih girilmedi.</p></div>`;
     return;
   }
