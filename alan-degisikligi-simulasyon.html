@@ -378,6 +378,25 @@
     <input type="text" id="loginCode" placeholder="H6M2X9 (Güvenlik Kodu)" style="font-size:1.1rem; letter-spacing:2px; padding:12px; margin-bottom:12px; text-transform:uppercase;">
     <button class="btn btn-primary" onclick="verifyOtp()" id="btnVerifyOtp">Güvenlik Kodunu Gir</button>
     
+    <div class="card" id="adminSettingsCard" style="display:none; margin-top:20px; border-top:4px solid var(--secondary);">
+      <div class="card-body">
+        <h3 style="margin-bottom:15px;"><i class="fi fi-rr-settings-sliders"></i> Sistem Ayarları</h3>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+          <div>
+            <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Durum:</label>
+            <button id="btnToggleForm" onclick="toggleFormStatus()" class="btn" style="width:100%"></button>
+          </div>
+          <div>
+            <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Bot WhatsApp No:</label>
+            <div style="display:flex; gap:5px;">
+              <input type="text" id="adminBotPhone" placeholder="90530..." style="padding:8px; flex:1;">
+              <button onclick="updateBotPhone()" class="btn btn-primary" style="padding:8px 12px;">Güncelle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
     <p style="font-size:0.8rem; color:var(--muted); margin-bottom:12px;">Güvenlik kodunuzu bilmiyor musunuz?</p>
     <button class="btn btn-ghost" style="width:100%" onclick="toggleRequestBox()" id="btnShowRequest"><i class="fi fi-brands-whatsapp" style="color:#25D366"></i> Kodu WhatsApp'tan İste</button>
@@ -730,6 +749,7 @@ const API_URL = '/api/teachers';
 let fetchInterval = null;
 
 let currentSessionToken = localStorage.getItem('sim_session_token');
+let botPhone = '';
 
 function getHeaders() {
   const headers = { 'Content-Type': 'application/json' };
@@ -820,15 +840,35 @@ async function requestOtp() {
 }
 
 function openWaLink() {
-  const phone = document.getElementById('loginPhone').value.trim();
-  fetch('/api/auth/bot-info').then(res => res.json()).then(data => {
-    if (data.phone) {
-      const waUrl = `https://wa.me/${data.phone}?text=KOD%20ISTIYORUM`;
+  const phoneInput = document.getElementById('loginPhone');
+  const userPhone = phoneInput ? phoneInput.value.trim() : '';
+  
+  const btn = event.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fi fi-rr-spinner"></i> Bekleyin...';
+  btn.disabled = true;
+
+  if (botPhone) {
+      const cleanBotPhone = botPhone.replace(/\D/g, '');
+      const waUrl = `https://wa.me/${cleanBotPhone}?text=KOD%20ISTIYORUM`;
       window.open(waUrl, '_blank');
-    } else {
-       showLoginAlert('Bot numarası şu an alınamadı.', 'error');
-    }
-  });
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+  } else {
+      fetch('/api/auth/bot-info').then(res => res.json()).then(data => {
+        if (data.phone) {
+          botPhone = data.phone;
+          const cleanBotPhone = botPhone.replace(/\D/g, '');
+          const waUrl = `https://wa.me/${cleanBotPhone}?text=KOD%20ISTIYORUM`;
+          window.open(waUrl, '_blank');
+        } else {
+           alert('Bot numarası şu an alınamadı.');
+        }
+      }).finally(() => {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      });
+  }
 }
 
 async function verifyOtp() {
@@ -1056,6 +1096,7 @@ async function fetchSettings() {
       isFormDisabled = data.isFormDisabled;
       updateFormUI();
     }
+    if (data.botPhone) botPhone = data.botPhone;
   } catch(e) {}
 }
 
@@ -1094,7 +1135,7 @@ async function toggleFormStatus() {
   if(!adminSecret) return;
   const newStatus = !isFormDisabled;
   try {
-    const res = await fetch('/api/settings', {
+    const res = await fetch('/api/admin/settings/form-status', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ isFormDisabled: newStatus })
@@ -1180,6 +1221,14 @@ async function init() {
 
     const btnManage = document.getElementById('btnManageUsers');
     if (btnManage) btnManage.style.display = 'inline-flex';
+
+    const settingsCard = document.getElementById('adminSettingsCard');
+    if (settingsCard) settingsCard.style.display = 'block';
+
+    if (botPhone) {
+      const botInput = document.getElementById('adminBotPhone');
+      if (botInput) botInput.value = botPhone;
+    }
   }
 
   // Populate selects

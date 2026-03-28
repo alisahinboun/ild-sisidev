@@ -32,19 +32,36 @@ function isRateLimited(key, limit = 5, windowMs = 60000) {
   return rateLimits[key].count > limit;
 }
 
-app.get('/api/settings', (req, res) => {
-  res.json({ isFormDisabled });
+app.get('/api/settings', async (req, res) => {
+  let botPhoneLocal = '';
+  try {
+    const rows = await dbQuery('SELECT value FROM settings WHERE key = ?', ['bot_phone']);
+    if (rows && rows[0]) botPhoneLocal = rows[0].value;
+  } catch(e) {}
+  res.json({ isFormDisabled, botPhone: botPhoneLocal });
 });
 
-app.post('/api/settings', (req, res) => {
+app.post('/api/admin/settings/form-status', async (req, res) => {
   const adminSecret = req.headers['x-admin-secret'];
-  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) {
-    return res.status(403).json({ error: 'Yetkisiz' });
-  }
-  if (typeof req.body.isFormDisabled !== 'undefined') {
-    isFormDisabled = req.body.isFormDisabled;
-  }
-  res.json({ success: true, isFormDisabled });
+  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) return res.status(403).json({ error: 'Yetkisiz' });
+  try {
+    let { isFormDisabled } = req.body;
+    isFormDisabled = !!isFormDisabled;
+    await dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['isFormDisabled', isFormDisabled ? '1' : '0', isFormDisabled ? '1' : '0']).catch(e => {});
+    res.json({ success: true, isFormDisabled });
+  } catch(e) { res.status(500).json({ error: 'Hata' }); }
+});
+
+app.post('/api/admin/settings/bot-phone', async (req, res) => {
+  const adminSecret = req.headers['x-admin-secret'];
+  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) return res.status(403).json({ error: 'Yetkisiz' });
+  try {
+    const { phone } = req.body;
+    const cleanPhone = String(phone || '').replace(/\D/g, '');
+    if (!cleanPhone) return res.status(400).json({ error: 'Geçersiz numara' });
+    await dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['bot_phone', cleanPhone, cleanPhone]).catch(e => {});
+    res.json({ success: true, phone: cleanPhone });
+  } catch(e) { res.status(500).json({ error: 'Hata' }); }
 });
 
 const { DATABASE_URL } = process.env;
@@ -139,6 +156,11 @@ dbQuery(`CREATE TABLE IF NOT EXISTS sessions (
   }
 }).catch(() => {});
 
+dbQuery(`CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
+)`).catch(() => {});
+
 const logTableSql = DATABASE_URL 
   ? `CREATE TABLE IF NOT EXISTS admin_logs (id SERIAL PRIMARY KEY, phone TEXT, event TEXT, ip TEXT, ua TEXT, datetime TEXT)`
   : `CREATE TABLE IF NOT EXISTS admin_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, event TEXT, ip TEXT, ua TEXT, datetime TEXT)`;
@@ -226,6 +248,9 @@ client.on('qr', (qr) => {
 client.on('ready', () => {
     console.log('[WHATSAPP] İstemci Hazır ve Bağlandı!');
     isWhatsAppReady = true;
+    if (client.info && client.info.wid) {
+        dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['bot_phone', client.info.wid.user, client.info.wid.user]).catch(e => {});
+    }
 });
 
 client.on('disconnected', () => {
@@ -283,11 +308,20 @@ function formatPhoneForWa(phone) {
   return p + '@c.us';
 }
 
-app.get('/api/auth/bot-info', (req, res) => {
-  if (!isWhatsAppReady || !client.info) {
-    return res.status(503).json({ error: 'WhatsApp henüz hazır değil.' });
+app.get('/api/auth/bot-info', async (req, res) => {
+  let phone = (isWhatsAppReady && client.info) ? client.info.wid.user : null;
+  
+  if (!phone) {
+    try {
+      const rows = await dbQuery('SELECT value FROM settings WHERE key = ?', ['bot_phone']);
+      if (rows && rows[0]) phone = rows[0].value;
+    } catch(e) {}
   }
-  res.json({ phone: client.info.wid.user });
+
+  if (!phone) {
+    return res.status(503).json({ error: 'WhatsApp bot numarası henüz belirlenmedi.' });
+  }
+  res.json({ phone });
 });
 
 app.post('/api/auth/request', async (req, res) => {
@@ -421,6 +455,19 @@ app.get('/api/admin/users', async (req, res) => {
     res.json({ users: rows, availableCodes });
   } catch(e) { res.status(500).json({error: 'Hata'}); }
 });
+
+
+
+// Load settings at startup
+async function loadStartupSettings() {
+  try {
+    const rows = await dbQuery('SELECT * FROM settings');
+    rows.forEach(r => {
+      if (r.key === 'isFormDisabled') isFormDisabled = (r.value === '1');
+    });
+  } catch(e) {}
+}
+loadStartupSettings();
 
 app.post('/api/admin/users', async (req, res) => {
   const adminSecret = req.headers['x-admin-secret'];
