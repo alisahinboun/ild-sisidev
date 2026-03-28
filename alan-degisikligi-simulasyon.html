@@ -848,26 +848,37 @@ function openWaLink() {
   btn.innerHTML = '<i class="fi fi-rr-spinner"></i> Bekleyin...';
   btn.disabled = true;
 
+  const handleOpen = (num) => {
+    const cleanBotPhone = num.replace(/\D/g, '');
+    const waUrl = `https://wa.me/${cleanBotPhone}?text=KOD%20ISTIYORUM`;
+    window.open(waUrl, '_blank');
+  };
+
   if (botPhone) {
-      const cleanBotPhone = botPhone.replace(/\D/g, '');
-      const waUrl = `https://wa.me/${cleanBotPhone}?text=KOD%20ISTIYORUM`;
-      window.open(waUrl, '_blank');
+      handleOpen(botPhone);
       btn.innerHTML = originalHtml;
       btn.disabled = false;
   } else {
-      fetch('/api/auth/bot-info').then(res => res.json()).then(data => {
-        if (data.phone) {
-          botPhone = data.phone;
-          const cleanBotPhone = botPhone.replace(/\D/g, '');
-          const waUrl = `https://wa.me/${cleanBotPhone}?text=KOD%20ISTIYORUM`;
-          window.open(waUrl, '_blank');
-        } else {
-           alert('Bot numarası şu an alınamadı.');
-        }
-      }).finally(() => {
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-      });
+      fetch('/api/auth/bot-info')
+        .then(res => {
+          if(!res.ok) throw new Error('Sunucu hatası');
+          return res.json();
+        })
+        .then(data => {
+          if (data.phone) {
+            botPhone = data.phone;
+            handleOpen(botPhone);
+          } else {
+            alert('Bot numarası sistemde tanımlı değil. Lütfen yöneticiye bildirin.');
+          }
+        })
+        .catch(err => {
+          alert('Bot numarası alınamadı. İnternet bağlantınızı veya sunucu durumunu kontrol edin.');
+        })
+        .finally(() => {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        });
   }
 }
 

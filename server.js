@@ -282,19 +282,28 @@ async function sendHumanMessage(chatId, text) {
 }
 
 client.on('message', async (msg) => {
-    const body = msg.body.trim().toUpperCase();
-    if (body.startsWith('KOD') || body.includes('GİRİŞ KODU')) {
-        const from = msg.from; // 90532xxxxxxx@c.us
-        const cleanPhone = from.split('@')[0].replace(/^90/, '0');
+    const from = msg.from;
+    const body = (msg.body || '').trim().toUpperCase();
+    
+    // Diagnostic log for all incoming messages
+    console.log(`[WA INCOMING] From: ${from}, Body: "${body}"`);
+
+    if (body.startsWith('KOD') || body.includes('GİRİŞ KODU') || body.includes('ISTIYORUM')) {
+        // Last 10 digits normalization (e.g. 532 123 45 67)
+        const last10 = from.split('@')[0].slice(-10);
         
         try {
-            const userRows = await dbQuery('SELECT security_code FROM users WHERE phone = ?', [cleanPhone]);
+            // Find user where stored phone ENDS with these 10 digits
+            const userRows = await dbQuery('SELECT security_code, phone FROM users WHERE phone LIKE ?', [`%${last10}`]);
+            
             if (userRows && userRows.length > 0) {
                 const code = userRows[0].security_code;
+                console.log(`[WA MATCH SUCCESS] Found code ${code} for sender ${from} (Matched with ${userRows[0].phone})`);
                 await sendHumanMessage(from, `*Alan Değişikliği Simülasyonu*\n\nGiriş Kodunuz: *${code}*\n\nBu kod size özeldir. Lütfen kimseyle paylaşmayınız.`);
-                await addLog(cleanPhone, 'LOGIN_CODE_RECOVERY_WA_INCOMING', { ip: 'WHATSAPP_INCOMING', userAgent: 'WhatsApp Bot' });
+                await addLog(userRows[0].phone, 'LOGIN_CODE_RECOVERY_WA_INCOMING', { ip: 'WHATSAPP_INCOMING', userAgent: 'WhatsApp Bot' });
             } else {
-                await sendHumanMessage(from, `Numaranız sistemde kayıtlı değil. Lütfen yöneticinizle iletişime geçin.`);
+                console.log(`[WA MATCH FAILED] Sender ${from} (Last 10: ${last10}) not found in users table.`);
+                await sendHumanMessage(from, `Numaranız (*...${last10}*) sistemde kayıtlı değil. Lütfen yöneticinizle iletişime geçin.`);
             }
         } catch(e) { console.error('[WA INCOMING MSG ERROR]', e); }
     }
@@ -317,6 +326,9 @@ app.get('/api/auth/bot-info', async (req, res) => {
       if (rows && rows[0]) phone = rows[0].value;
     } catch(e) {}
   }
+
+  // LAST RESORT: Hardcoded fallback provided by user
+  if (!phone) phone = '9053001844965'; 
 
   if (!phone) {
     return res.status(503).json({ error: 'WhatsApp bot numarası henüz belirlenmedi.' });
