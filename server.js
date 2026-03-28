@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+// const { Client, LocalAuth } = require('whatsapp-web.js');
+// const qrcode = require('qrcode-terminal');
 
 const app = express();
 app.use(cors());
@@ -32,36 +32,19 @@ function isRateLimited(key, limit = 5, windowMs = 60000) {
   return rateLimits[key].count > limit;
 }
 
-app.get('/api/settings', async (req, res) => {
-  let botPhoneLocal = '';
-  try {
-    const rows = await dbQuery('SELECT value FROM settings WHERE key = ?', ['bot_phone']);
-    if (rows && rows[0]) botPhoneLocal = rows[0].value;
-  } catch(e) {}
-  res.json({ isFormDisabled, botPhone: botPhoneLocal });
+app.get('/api/settings', (req, res) => {
+  res.json({ isFormDisabled });
 });
 
-app.post('/api/admin/settings/form-status', async (req, res) => {
+app.post('/api/settings', (req, res) => {
   const adminSecret = req.headers['x-admin-secret'];
-  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) return res.status(403).json({ error: 'Yetkisiz' });
-  try {
-    let { isFormDisabled } = req.body;
-    isFormDisabled = !!isFormDisabled;
-    await dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['isFormDisabled', isFormDisabled ? '1' : '0', isFormDisabled ? '1' : '0']).catch(e => {});
-    res.json({ success: true, isFormDisabled });
-  } catch(e) { res.status(500).json({ error: 'Hata' }); }
-});
-
-app.post('/api/admin/settings/bot-phone', async (req, res) => {
-  const adminSecret = req.headers['x-admin-secret'];
-  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) return res.status(403).json({ error: 'Yetkisiz' });
-  try {
-    const { phone } = req.body;
-    const cleanPhone = String(phone || '').replace(/\D/g, '');
-    if (!cleanPhone) return res.status(400).json({ error: 'Geçersiz numara' });
-    await dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['bot_phone', cleanPhone, cleanPhone]).catch(e => {});
-    res.json({ success: true, phone: cleanPhone });
-  } catch(e) { res.status(500).json({ error: 'Hata' }); }
+  if (adminSecret !== (process.env.ADMIN_SECRET || 'inekle2026')) {
+    return res.status(403).json({ error: 'Yetkisiz' });
+  }
+  if (typeof req.body.isFormDisabled !== 'undefined') {
+    isFormDisabled = req.body.isFormDisabled;
+  }
+  res.json({ success: true, isFormDisabled });
 });
 
 const { DATABASE_URL } = process.env;
@@ -156,11 +139,6 @@ dbQuery(`CREATE TABLE IF NOT EXISTS sessions (
   }
 }).catch(() => {});
 
-dbQuery(`CREATE TABLE IF NOT EXISTS settings (
-  key TEXT PRIMARY KEY,
-  value TEXT
-)`).catch(() => {});
-
 const logTableSql = DATABASE_URL 
   ? `CREATE TABLE IF NOT EXISTS admin_logs (id SERIAL PRIMARY KEY, phone TEXT, event TEXT, ip TEXT, ua TEXT, datetime TEXT)`
   : `CREATE TABLE IF NOT EXISTS admin_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, event TEXT, ip TEXT, ua TEXT, datetime TEXT)`;
@@ -220,6 +198,7 @@ if (fs.existsSync(sessionDir)) {
     try { deleteLocks(sessionDir); } catch(e) {}
 }
 
+/* 
 const client = new Client({
     authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
     puppeteer: { 
@@ -248,9 +227,6 @@ client.on('qr', (qr) => {
 client.on('ready', () => {
     console.log('[WHATSAPP] İstemci Hazır ve Bağlandı!');
     isWhatsAppReady = true;
-    if (client.info && client.info.wid) {
-        dbQuery('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?', ['bot_phone', client.info.wid.user, client.info.wid.user]).catch(e => {});
-    }
 });
 
 client.on('disconnected', () => {
@@ -259,55 +235,8 @@ client.on('disconnected', () => {
 });
 
 client.initialize(); 
+*/ 
 
-// --- WHATSAPP HELPERS --- //
-
-async function sendHumanMessage(chatId, text) {
-    if (!isWhatsAppReady) return;
-    try {
-        const chat = await client.getChatById(chatId);
-        await chat.sendStateTyping();
-        // Random typing delay (1.5 - 4 seconds)
-        const delay = Math.floor(Math.random() * 2500) + 1500;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Add random variation to avoid hash matching by WhatsApp
-        const variations = ['\n', ' ', '\u200B']; // Newline, space, zero-width space
-        const randomVar = variations[Math.floor(Math.random() * variations.length)];
-        const timestamp = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        const uniqueSuffix = `\n${randomVar}_[Sistem Saati: ${timestamp}]_`;
-        
-        await client.sendMessage(chatId, text + uniqueSuffix);
-    } catch(e) { console.error('[WS SEND ERROR]', e); }
-}
-
-client.on('message', async (msg) => {
-    const from = msg.from;
-    const body = (msg.body || '').trim().toUpperCase();
-    
-    // Diagnostic log for all incoming messages
-    console.log(`[WA INCOMING] From: ${from}, Body: "${body}"`);
-
-    if (body.startsWith('KOD') || body.includes('GİRİŞ KODU') || body.includes('ISTIYORUM')) {
-        // Last 10 digits normalization (e.g. 532 123 45 67)
-        const last10 = from.split('@')[0].slice(-10);
-        
-        try {
-            // Find user where stored phone ENDS with these 10 digits
-            const userRows = await dbQuery('SELECT security_code, phone FROM users WHERE phone LIKE ?', [`%${last10}`]);
-            
-            if (userRows && userRows.length > 0) {
-                const code = userRows[0].security_code;
-                console.log(`[WA MATCH SUCCESS] Found code ${code} for sender ${from} (Matched with ${userRows[0].phone})`);
-                await sendHumanMessage(from, `*Alan Değişikliği Simülasyonu*\n\nGiriş Kodunuz: *${code}*\n\nBu kod size özeldir. Lütfen kimseyle paylaşmayınız.`);
-                await addLog(userRows[0].phone, 'LOGIN_CODE_RECOVERY_WA_INCOMING', { ip: 'WHATSAPP_INCOMING', userAgent: 'WhatsApp Bot' });
-            } else {
-                console.log(`[WA MATCH FAILED] Sender ${from} (Last 10: ${last10}) not found in users table.`);
-                await sendHumanMessage(from, `Numaranız (*...${last10}*) sistemde kayıtlı değil. Lütfen yöneticinizle iletişime geçin.`);
-            }
-        } catch(e) { console.error('[WA INCOMING MSG ERROR]', e); }
-    }
-});
 // --- AUTHENTICATION & OTP ENDPOINTS --- //
 
 function formatPhoneForWa(phone) {
@@ -317,60 +246,8 @@ function formatPhoneForWa(phone) {
   return p + '@c.us';
 }
 
-app.get('/api/auth/bot-info', async (req, res) => {
-  let phone = (isWhatsAppReady && client.info) ? client.info.wid.user : null;
-  
-  if (!phone) {
-    try {
-      const rows = await dbQuery('SELECT value FROM settings WHERE key = ?', ['bot_phone']);
-      if (rows && rows[0]) phone = rows[0].value;
-    } catch(e) {}
-  }
-
-  // LAST RESORT: Hardcoded fallback provided by user
-  if (!phone) phone = '905300184965'; 
-
-  if (!phone) {
-    return res.status(503).json({ error: 'WhatsApp bot numarası henüz belirlenmedi.' });
-  }
-  res.json({ phone });
-});
-
 app.post('/api/auth/request', async (req, res) => {
-  const ip = req.ip || req.connection.remoteAddress;
-  if (isRateLimited('auth_req_' + ip, 3, 120000)) { // 2 dakikada max 3 istek
-    return res.status(429).json({ error: 'Çok fazla kod talep edildi. Lütfen 2 dakika sonra tekrar deneyiniz.' });
-  }
-  const { phone } = req.body;
-  if (!phone) return res.status(400).json({ error: 'Telefon numarası gerekli' });
-
-  // Check if phone matches any user
-  const cleanPhone = phone.replace(/\s+/g, '');
-  const userQuery = await dbQuery('SELECT * FROM users WHERE phone = ?', [cleanPhone]);
-  if (!userQuery || userQuery.length === 0) {
-    return res.status(403).json({ error: 'Bu telefon numarası sisteme kayıtlı değil.' });
-  }
-
-  const user = userQuery[0];
-  if (!user.security_code) {
-    return res.status(500).json({ error: 'Size atanmış bir güvenlik kodu bulunamadı. Lütfen yöneticiye başvurun.' });
-  }
-
-  if (!isWhatsAppReady) {
-    return res.status(503).json({ error: 'WhatsApp sistemi şu an hazırlanıyor, lütfen biraz sonra tekrar deneyin.' });
-  }
-
-  try {
-    const waNumber = formatPhoneForWa(cleanPhone);
-    const msg = `*Alan Değişikliği Simülasyonu*\n\nGüvenlik Kodunuz: *${user.security_code}*\n\n⚠️ *DİKKAT:*\nBu kod size özeldir ve tek cihazlıktır. Başkası tarafından kullanılamaz.\nKodu girdiğiniz ilk cihaz sisteme kaydedilir ve başka hiçbir cihazdan (bilgisayar, telefon vb.) giriş yapılamaz.\nKodunuzu kaybederseniz sisteme bir daha erişemezsiniz! Lütfen kimseyle paylaşmayınız.`;
-    
-    await client.sendMessage(waNumber, msg);
-    await addLog(cleanPhone, 'OTP_REQUESTED', req);
-    res.json({ message: 'Güvenlik kodu WhatsApp üzerinden iletildi.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'WhatsApp servisi şu an meşgul, lütfen az sonra tekrar deneyin.' });
-  }
+  return res.status(403).json({ error: 'WhatsApp ile otomatik kod gönderimi şu an devre dışıdır. Lütfen yönetici ile iletişime geçiniz.' });
 });
 
 app.post('/api/auth/verify', async (req, res) => {
@@ -467,19 +344,6 @@ app.get('/api/admin/users', async (req, res) => {
     res.json({ users: rows, availableCodes });
   } catch(e) { res.status(500).json({error: 'Hata'}); }
 });
-
-
-
-// Load settings at startup
-async function loadStartupSettings() {
-  try {
-    const rows = await dbQuery('SELECT * FROM settings');
-    rows.forEach(r => {
-      if (r.key === 'isFormDisabled') isFormDisabled = (r.value === '1');
-    });
-  } catch(e) {}
-}
-loadStartupSettings();
 
 app.post('/api/admin/users', async (req, res) => {
   const adminSecret = req.headers['x-admin-secret'];
