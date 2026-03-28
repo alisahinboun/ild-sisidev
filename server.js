@@ -328,7 +328,7 @@ app.get('/api/auth/bot-info', async (req, res) => {
   }
 
   // LAST RESORT: Hardcoded fallback provided by user
-  if (!phone) phone = '9053001844965'; 
+  if (!phone) phone = '905300184965'; 
 
   if (!phone) {
     return res.status(503).json({ error: 'WhatsApp bot numarası henüz belirlenmedi.' });
