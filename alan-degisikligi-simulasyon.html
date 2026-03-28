@@ -1083,7 +1083,13 @@ async function fetchTeachers() {
     const res = await fetch(API_URL, { headers: getHeaders() });
     if (res.status === 401) { processUnauthorized(); return; }
     if (!res.ok) throw new Error('Network response was not ok');
-    teachers = await res.json();
+    const rawT = await res.json();
+    teachers = rawT.map(t => {
+      if (typeof t.tercipler === 'string') {
+        try { t.tercipler = JSON.parse(t.tercipler); } catch(e) { t.tercipler = []; }
+      }
+      return t;
+    });
     renderTable();
     renderCityView();
     const userPhone = localStorage.getItem('sim_user_phone');
@@ -1454,17 +1460,35 @@ function renderCityHeatTable() {
   const counts = {};
   let totalPrefs = 0;
   
+  if (!window.teachers || !Array.isArray(teachers) || teachers.length === 0) {
+    return `<div style="padding:16px; text-align:center; color:var(--muted); font-size:0.85rem; border:1px dashed var(--border); border-radius:12px; margin-bottom:20px;">
+      <i class="fi fi-rr-info" style="font-size:1.2rem; display:block; margin-bottom:8px;"></i>
+      Henüz sisteme kayıtlı bir tercih bulunmadığı için tablo oluşturulamıyor.
+    </div>`;
+  }
+  
   teachers.forEach(t => {
     if (alan && t.hedefAlan !== alan) return;
-    t.tercipler.forEach(city => {
-      if (!city) return;
-      counts[city] = (counts[city] || 0) + 1;
-      totalPrefs++;
-    });
+    let prefs = t.tercipler;
+    if (typeof prefs === 'string') {
+       try { prefs = JSON.parse(prefs); } catch(e) { prefs = []; }
+    }
+    if (Array.isArray(prefs)) {
+      prefs.forEach(city => {
+        if (!city) return;
+        counts[city] = (counts[city] || 0) + 1;
+        totalPrefs++;
+      });
+    }
   });
 
   const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-  if (sorted.length === 0) return '';
+  if (sorted.length === 0) {
+    return `<div style="padding:16px; text-align:center; color:var(--muted); font-size:0.85rem; border:1px dashed var(--border); border-radius:12px; margin-bottom:20px;">
+      <i class="fi fi-rr-search-alt" style="font-size:1.2rem; display:block; margin-bottom:8px;"></i>
+      Seçtiğiniz branşta ({alan || 'Tüm Alanlar'}) henüz şehir tercihi yapılmamış.
+    </div>`;
+  }
 
   const maxCount = sorted[0][1];
   
